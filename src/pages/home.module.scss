@@ -1,1 +1,28 @@
-// TODO
+.post{
+  display: block;
+  margin-top: 2rem;
+  h1{
+    font-size: 1.65rem;
+    font-weight: bold;
+    color: var(--heading);
+  }
+
+  > span{
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 1.125rem;
+  }
+
+}
+
+.postDetails{
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  span{
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
