@@ -33,10 +33,23 @@ interface PostProps {
 }
 
 export default function Post({ post }: PostProps) {
+  const router = useRouter();
+
+  if (router.isFallback) {
+    return <h1>Carregando...</h1>;
+  }
+  const totalWords = post.data.content.reduce((total, contentItem) => {
+    const headingTime = contentItem.heading.split(/\s+/).length;
+    const wordsTime = RichText.asText(contentItem.body).split(/\s+/).length;
+
+    return total + headingTime + wordsTime;
+  }, 0);
+  const readTime = Math.ceil(totalWords / 200);
+
   return (
     <>
       <Head>
-        <title>{post.data.title} | spacetraveling</title>
+        <title>{post.data.title} | Spacetraveling</title>
       </Head>
 
       <Header />
@@ -53,6 +66,10 @@ export default function Post({ post }: PostProps) {
               <li>
                 <FiUser />
                 {post.data.author}
+              </li>
+              <li>
+                <FiClock />
+                {`${readTime} min`}
               </li>
             </ul>
           </div>
@@ -80,13 +97,18 @@ export default function Post({ post }: PostProps) {
 export const getStaticPaths: GetStaticPaths = async () => {
   const prismic = getPrismicClient({});
   const posts = await prismic.getByType('posts');
-  const popularPostsId = 'codigo-limpo';
-  const paths = posts.results.find(post => {
-    return post.uid === popularPostsId;
+
+  /* retornando todos os post pois o desafio pede que o fallback seja true */
+  const paths = posts.results.map(post => {
+    return {
+      params: {
+        slug: post.uid,
+      },
+    };
   });
 
   return {
-    paths: [paths.uid],
+    paths,
     fallback: true,
   };
 };
