@@ -39,10 +39,10 @@ export default function Post({ post }: PostProps) {
     return <h1>Carregando...</h1>;
   }
   const totalWords = post.data.content.reduce((total, contentItem) => {
-    const headingTime = contentItem.heading.split(/\s+/).length;
+    const readingTime = contentItem.heading.split(/\s+/).length;
     const wordsTime = RichText.asText(contentItem.body).split(/\s+/).length;
 
-    return total + headingTime + wordsTime;
+    return total + readingTime + wordsTime;
   }, 0);
   const readTime = Math.ceil(totalWords / 200);
 

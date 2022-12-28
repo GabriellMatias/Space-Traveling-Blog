@@ -1,5 +1,6 @@
 import { GetStaticProps } from 'next';
 import Link from 'next/link';
+import { useState } from 'react';
 import { FiCalendar, FiUser } from 'react-icons/fi';
 import Header from '../components/Header';
 
@@ -29,11 +30,39 @@ interface HomeProps {
 }
 
 export default function Home({ postsPagination }: HomeProps) {
+  const formattedPosts = postsPagination.results.map(post => ({
+    ...post,
+    // first_publication_date: formatDate(post.first_publication_date),
+  }));
+
+  const [posts, setPosts] = useState<Post[]>(formattedPosts);
+  const [nextPage, setNextPage] = useState(postsPagination.next_page);
+  console.log(posts, nextPage, formattedPosts);
+
+  async function handleNextPage(): Promise<void> {
+    if (nextPage === null) return;
+
+    const postsResults = await fetch(nextPage).then(response =>
+      response.json()
+    );
+
+    setNextPage(postsResults.next_page);
+
+    const newPosts = postsResults.results.map((post: Post) => {
+      return {
+        ...post,
+        // first_publication_date: formatDate(post.first_publication_date),
+      };
+    });
+
+    setPosts([...posts, ...newPosts]);
+  }
+
   return (
     <main className={commonStyles.container}>
       <Header />
       <section>
-        {postsPagination.results.map(post => {
+        {posts.map(post => {
           return (
             <Link href={`/post/${post.uid}`}>
               <a className={styles.post}>
@@ -53,6 +82,11 @@ export default function Home({ postsPagination }: HomeProps) {
             </Link>
           );
         })}
+        {nextPage && (
+          <button type="button" onClick={handleNextPage}>
+            Carregar mais posts
+          </button>
+        )}
       </section>
     </main>
   );
@@ -61,7 +95,7 @@ export default function Home({ postsPagination }: HomeProps) {
 export const getStaticProps: GetStaticProps = async () => {
   const prismic = getPrismicClient({});
   const postsResponse = await prismic.getByType('posts', {
-    pageSize: 3,
+    pageSize: 2,
     orderings: {
       field: 'last_publication_date',
       direction: 'desc',
