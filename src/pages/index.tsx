@@ -29,15 +29,15 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export default function Home({ postsPagination }: HomeProps) {
   const formattedPosts = postsPagination.results.map(post => ({
     ...post,
-    // first_publication_date: formatDate(post.first_publication_date),
+    first_publication_date: post.first_publication_date,
   }));
 
   const [posts, setPosts] = useState<Post[]>(formattedPosts);
   const [nextPage, setNextPage] = useState(postsPagination.next_page);
-  console.log(posts, nextPage, formattedPosts);
 
   async function handleNextPage(): Promise<void> {
     if (nextPage === null) return;
@@ -51,7 +51,7 @@ export default function Home({ postsPagination }: HomeProps) {
     const newPosts = postsResults.results.map((post: Post) => {
       return {
         ...post,
-        // first_publication_date: formatDate(post.first_publication_date),
+        first_publication_date: post.first_publication_date,
       };
     });
 
@@ -84,7 +84,7 @@ export default function Home({ postsPagination }: HomeProps) {
         })}
         {nextPage && (
           <button type="button" onClick={handleNextPage}>
-            Carregar mais posts
+            Carregar mais posts...
           </button>
         )}
       </section>
@@ -95,7 +95,7 @@ export default function Home({ postsPagination }: HomeProps) {
 export const getStaticProps: GetStaticProps = async () => {
   const prismic = getPrismicClient({});
   const postsResponse = await prismic.getByType('posts', {
-    pageSize: 2,
+    pageSize: 1,
     orderings: {
       field: 'last_publication_date',
       direction: 'desc',
