@@ -17,6 +17,7 @@ interface Post {
     banner: {
       url: string;
     };
+    estimated_read_time: number;
     author: string;
     content: {
       heading: string;
@@ -33,7 +34,7 @@ interface GetStaticPropsResult {
   props: PostProps;
 }
 
-const mockedGetByTypeReturn = {
+const mockedQueryReturn = {
   results: [
     {
       uid: 'como-utilizar-hooks',
@@ -44,15 +45,6 @@ const mockedGetByTypeReturn = {
   ],
 };
 
-const mockedGetAllByTypeReturn = [
-  {
-    uid: 'como-utilizar-hooks',
-  },
-  {
-    uid: 'criando-um-app-cra-do-zero',
-  },
-];
-
 const mockedGetByUIDReturn = {
   uid: 'como-utilizar-hooks',
   first_publication_date: '2021-03-25T19:25:28+0000',
@@ -60,6 +52,7 @@ const mockedGetByUIDReturn = {
     title: 'Como utilizar Hooks',
     subtitle: 'Pensando em sincronização em vez de ciclos de vida',
     author: 'Joseph Oliveira',
+    estimated_read_time: 17,
     banner: {
       url: 'https://images.prismic.io/criando-projeto-do-zero/95494d57-eee2-4adb-9883-befa9829abca_christopher-gower-m_HRfLhgABo-unsplash.jpg?auto=compress,format',
     },
@@ -196,11 +189,8 @@ describe('Post', () => {
       getByUID: () => {
         return Promise.resolve(mockedGetByUIDReturn);
       },
-      getAllByType: () => {
-        return Promise.resolve(mockedGetAllByTypeReturn);
-      },
-      getByType: () => {
-        return Promise.resolve(mockedGetByTypeReturn);
+      query: () => {
+        return Promise.resolve(mockedQueryReturn);
       },
     });
   });
@@ -240,7 +230,7 @@ describe('Post', () => {
       getStaticPropsContext
     )) as GetStaticPropsResult;
 
-    expect(response.props.post).toEqual(expect.objectContaining(postReturn));
+    expect(response.props.post).toEqual(postReturn);
   });
 
   it('should be able to render post document info', () => {
@@ -249,6 +239,7 @@ describe('Post', () => {
     render(<Post post={postProps} />);
 
     screen.getByText('Como utilizar Hooks');
+    screen.getByTestId('banner');
     screen.getByText('25 mar 2021');
     screen.getByText('Joseph Oliveira');
     screen.getByText('4 min');

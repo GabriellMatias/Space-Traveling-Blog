@@ -1,14 +1,15 @@
 import { GetStaticProps } from 'next';
 import Link from 'next/link';
-import { useState } from 'react';
+import Prismic from '@prismicio/client';
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
 import { FiCalendar, FiUser } from 'react-icons/fi';
-import Header from '../components/Header';
 
+import { useState } from 'react';
+import ApiSearchResponse from '@prismicio/client/types/ApiSearchResponse';
 import { getPrismicClient } from '../services/prismic';
-
-import commonStyles from '../styles/common.module.scss';
-import { formatDate } from '../utils/formatDate';
 import styles from './home.module.scss';
+import commonStyles from '../styles/common.module.scss';
 
 interface Post {
   uid?: string;
@@ -31,84 +32,80 @@ interface HomeProps {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export default function Home({ postsPagination }: HomeProps) {
-  const formattedPosts = postsPagination.results.map(post => ({
-    ...post,
-    first_publication_date: post.first_publication_date,
-  }));
+  const [posts, setPosts] = useState<Post[]>(postsPagination.results);
+  const [hasMorePosts, setHasMorePosts] = useState(!!postsPagination.next_page);
 
-  const [posts, setPosts] = useState<Post[]>(formattedPosts);
-  const [nextPage, setNextPage] = useState(postsPagination.next_page);
+  async function handleLoadMorePosts(): Promise<void> {
+    const loadMorePostsResponse: ApiSearchResponse = await (
+      await fetch(postsPagination.next_page)
+    ).json();
 
-  async function handleNextPage(): Promise<void> {
-    if (nextPage === null) return;
-
-    const postsResults = await fetch(nextPage).then(response =>
-      response.json()
-    );
-
-    setNextPage(postsResults.next_page);
-
-    const newPosts = postsResults.results.map((post: Post) => {
-      return {
-        ...post,
-        first_publication_date: post.first_publication_date,
-      };
-    });
-
-    setPosts([...posts, ...newPosts]);
+    setPosts(oldPosts => [...oldPosts, ...loadMorePostsResponse.results]);
+    setHasMorePosts(!!loadMorePostsResponse.next_page);
   }
 
   return (
-    <main className={commonStyles.container}>
-      <Header />
-      <section>
+    <div className={`${commonStyles.contentContainer} ${styles.container}`}>
+      <header>
+        <img src="/logo.svg" alt="logo" />
+      </header>
+
+      <main>
         {posts.map(post => {
           return (
-            <Link href={`/post/${post.uid}`}>
+            <Link href={`/post/${post.uid}`} key={post.uid}>
               <a className={styles.post}>
-                <h1>{post.data.title}</h1>
-                <span>{post.data.subtitle}</span>
-                <div className={styles.postDetails}>
-                  <span>
-                    <FiCalendar size={20} />
-                    {formatDate(post.first_publication_date)}
-                  </span>
-                  <span>
-                    <FiUser size={20} />
-                    {post.data.author}
-                  </span>
-                </div>
+                <article>
+                  <h2>{post.data.title}</h2>
+                  <p>{post.data.subtitle}</p>
+
+                  <section>
+                    <div>
+                      <FiCalendar />
+                      <span style={{ textTransform: 'capitalize' }}>
+                        {format(
+                          new Date(post.first_publication_date),
+                          'dd MMM yyyy',
+                          {
+                            locale: ptBR,
+                          }
+                        )}
+                      </span>
+                    </div>
+
+                    <div>
+                      <FiUser />
+                      <span>{post.data.author}</span>
+                    </div>
+                  </section>
+                </article>
               </a>
             </Link>
           );
         })}
-        {nextPage && (
-          <button type="button" onClick={handleNextPage}>
-            Carregar mais posts...
+
+        {hasMorePosts && (
+          <button type="button" onClick={handleLoadMorePosts}>
+            Carregar mais posts
           </button>
         )}
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }
 
-export const getStaticProps: GetStaticProps = async () => {
-  const prismic = getPrismicClient({});
-  const postsResponse = await prismic.getByType('posts', {
-    pageSize: 1,
-    orderings: {
-      field: 'last_publication_date',
-      direction: 'desc',
-    },
-  });
-
-  const postsPagination = {
-    next_page: postsResponse.next_page,
-    results: postsResponse.results,
-  };
+export const getStaticProps: GetStaticProps<HomeProps> = async () => {
+  const prismic = getPrismicClient();
+  const postsResponse = await prismic.query(
+    Prismic.Predicates.at('document.type', 'posts'),
+    {
+      pageSize: 1,
+    }
+  );
 
   return {
-    props: { postsPagination },
-    revalidate: 60 * 60 * 5,
+    props: {
+      postsPagination: postsResponse,
+    },
   };
 };

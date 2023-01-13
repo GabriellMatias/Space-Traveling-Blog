@@ -1,28 +1,75 @@
-.post{
-  display: block;
-  margin-top: 2rem;
-  h1{
-    font-size: 1.65rem;
-    font-weight: bold;
-    color: var(--heading);
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+
+  header {
+    img {
+      max-width: 15rem;
+    }
   }
 
-  > span{
-    display: block;
-    margin-top: 0.5rem;
-    font-size: 1.125rem;
-  }
+  main {
+    margin-top: 4rem;
 
+    list-style: none;
+
+    display: flex;
+    flex-direction: column;
+
+    button {
+      margin-top: 4rem;
+
+      color: var(--highlight);
+      width: fit-content;
+      transition: filter 0.2s;
+
+      &:hover {
+        filter: brightness(0.9);
+      }
+    }
+  }
 }
 
-.postDetails{
-  margin-top: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  span{
-    display: flex;
-    align-items: center;
-    gap: 4px;
+.post {
+  & + .post {
+    margin-top: 3rem;
+  }
+
+  article {
+    h2 {
+      color: var(--heading);
+      font-size: 1.75rem;
+    }
+
+    p {
+      margin-top: 0.5rem;
+    }
+
+    section {
+      font-size: 0.875rem;
+
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      div {
+        display: flex;
+        flex-direction: row;
+        color: var(--info);
+
+        svg {
+          margin-right: 10px;
+        }
+
+        & + div {
+          margin-left: 1.5rem;
+        }
+      }
+    }
   }
 }
